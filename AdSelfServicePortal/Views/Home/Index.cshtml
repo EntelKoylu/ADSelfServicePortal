@@ -1,0 +1,66 @@
+﻿@{
+    ViewData["Title"] = "Giriş Yap";
+}
+
+<div class="w-full max-w-md bg-white/90 backdrop-blur-md rounded-2xl shadow-soft border border-gray-100 p-8 mt-4 transform transition-all hover:shadow-xl">
+
+    <div class="text-center mb-8">
+        <h3 class="text-xl font-bold text-gray-800 mb-2">Hoş Geldiniz</h3>
+        <p class="text-gray-500 text-sm">Devam etmek için AD bilgilerinizle giriş yapın.</p>
+    </div>
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="mb-6 p-4 rounded-lg flex items-center gap-3 @(ViewBag.Renk == "success" ? "bg-green-50 text-green-700 border border-green-100" : (ViewBag.Renk == "warning" ? "bg-yellow-50 text-yellow-700 border border-yellow-100" : "bg-red-50 text-red-700 border border-red-100"))">
+            <i class="@(ViewBag.Renk == "success" ? "ri-checkbox-circle-line" : "ri-error-warning-line") text-xl"></i>
+            <span class="text-sm font-medium">@ViewBag.Message</span>
+        </div>
+    }
+
+    <form action="/Home/Login" method="post" class="space-y-5">
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 ml-1">Kullanıcı Adı</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="ri-user-line text-gray-400"></i>
+                </div>
+                <input type="text" name="username"
+                       class="form-input w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-button text-gray-800 text-sm focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none"
+                       placeholder="örn: ad.soyad" required>
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-2 ml-1">Şifre</label>
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <i class="ri-lock-2-line text-gray-400"></i>
+                </div>
+                <input type="password" name="password"
+                       class="form-input w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-button text-gray-800 text-sm focus:bg-white focus:border-primary focus:ring-4 focus:ring-primary/10 outline-none"
+                       placeholder="••••••••" required>
+            </div>
+        </div>
+
+        <button type="submit" class="w-full bg-primary hover:bg-blue-600 text-white font-semibold py-3.5 rounded-button shadow-lg shadow-blue-500/30 transition-all duration-300 transform active:scale-95 flex justify-center items-center gap-2 group">
+            <span>Giriş Yap</span>
+            <i class="ri-arrow-right-line transition-transform group-hover:translate-x-1"></i>
+        </button>
+
+    </form>
+
+    <div class="mt-8 pt-6 border-t border-gray-100 flex flex-col gap-3">
+
+        <a href="/Home/ForgotPassword" class="w-full flex items-center justify-center px-6 py-3 border border-gray-200 rounded-button text-sm font-semibold text-gray-600 hover:border-primary hover:text-primary hover:bg-blue-50 transition-all duration-300 bg-white group">
+            <i class="ri-key-2-line mr-2 text-gray-400 group-hover:text-primary transition-colors"></i>
+            Parolanızı mı unuttunuz?
+        </a>
+
+        <a href="/Home/UnlockAccount" class="w-full flex items-center justify-center px-6 py-3 border border-gray-200 rounded-button text-sm font-semibold text-gray-600 hover:border-primary hover:text-primary hover:bg-blue-50 transition-all duration-300 bg-white group">
+            <i class="ri-lock-unlock-line mr-2 text-gray-400 group-hover:text-primary transition-colors"></i>
+            Hesap kilitlendi mi?
+        </a>
+
+    </div>
+</div>

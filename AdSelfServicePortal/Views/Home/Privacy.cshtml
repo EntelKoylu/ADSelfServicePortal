@@ -1,0 +1,72 @@
+﻿@{
+    ViewData["Title"] = "Gizlilik Sözleşmesi";
+}
+
+<div class="w-full max-w-3xl bg-white/90 backdrop-blur-md rounded-2xl shadow-soft border border-gray-100 p-8 mt-4">
+
+    <div class="flex items-center justify-between mb-6 border-b border-gray-100 pb-6">
+        <div>
+            <h3 class="text-2xl font-bold text-gray-800">Gizlilik Sözleşmesi</h3>
+            <p class="text-gray-500 text-sm mt-1">Kullanım koşulları ve veri politikası.</p>
+        </div>
+        <div class="h-12 w-12 bg-blue-50 rounded-xl flex items-center justify-center text-primary">
+            <i class="ri-file-shield-2-line text-2xl"></i>
+        </div>
+    </div>
+
+    <div class="prose prose-blue max-w-none h-[400px] overflow-y-auto pr-4 text-gray-600 text-sm leading-relaxed custom-scrollbar">
+
+        <h4 class="text-gray-800 font-bold text-lg mb-3">1. Genel Hükümler</h4>
+        <p class="mb-4">
+            Bu Self Servis Portal ("Portal"), ParamTech çalışanlarının Active Directory hesaplarını güvenli bir şekilde yönetebilmeleri amacıyla tasarlanmıştır. Portalı kullanarak, aşağıda belirtilen hüküm ve koşulları kabul etmiş sayılırsınız.
+        </p>
+
+        <h4 class="text-gray-800 font-bold text-lg mb-3">2. Veri Güvenliği ve Kullanım</h4>
+        <p class="mb-4">
+            Sistem üzerinde gerçekleştirdiğiniz tüm işlemler (Şifre sıfırlama, hesap kilidi açma vb.) güvenlik gereği <strong>IP adresi, zaman damgası ve kullanıcı bilgisi</strong> ile kayıt altına alınmaktadır (Loglanmaktadır). Bu veriler sadece IT departmanı tarafından güvenlik denetimleri amacıyla kullanılabilir.
+        </p>
+
+        <h4 class="text-gray-800 font-bold text-lg mb-3">3. Kullanıcı Sorumlulukları</h4>
+        <ul class="list-disc list-inside mb-4 space-y-2">
+            <li>Kullanıcı, hesabının güvenliğinden şahsen sorumludur.</li>
+            <li>Oluşturulan yeni şifreler, şirket şifre politikalarına uygun olmalıdır.</li>
+            <li>Portal üzerinden başkası adına işlem yapılması kesinlikle yasaktır ve disiplin suçu teşkil eder.</li>
+            <li>Şüpheli bir durum fark edildiğinde derhal Bilgi Teknolojileri birimine haber verilmelidir.</li>
+        </ul>
+
+        <h4 class="text-gray-800 font-bold text-lg mb-3">4. KVKK Aydınlatma Metni</h4>
+        <p class="mb-4">
+            6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") uyarınca, kimlik ve iletişim verileriniz, iş faaliyetlerinin yürütülmesi ve bilgi güvenliği süreçlerinin yürütülmesi amaçlarıyla işlenmektedir.
+        </p>
+
+        <p class="italic text-gray-400 mt-8">Son Güncelleme: 01.01.2025</p>
+    </div>
+
+    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end">
+        <a href="/Home/Index" class="flex items-center px-6 py-2.5 bg-primary hover:bg-blue-600 text-white font-semibold rounded-button transition-colors shadow-lg shadow-blue-500/20">
+            <i class="ri-check-line mr-2"></i>
+            Okudum, Geri Dön
+        </a>
+    </div>
+
+</div>
+
+<style>
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+</style>

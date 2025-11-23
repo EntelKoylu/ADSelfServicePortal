@@ -1,0 +1,200 @@
+﻿@model AdSelfServicePortal.Models.DashboardViewModel
+
+@{
+    ViewData["Title"] = "Kullanıcı Arama";
+}
+
+<div class="w-full max-w-7xl mx-auto space-y-8 mt-6">
+
+    <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+        <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 flex flex-col justify-between h-24">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Toplam Personel</p>
+            <div class="flex justify-between items-end">
+                <p id="totalCount" class="text-2xl font-bold text-gray-800">@Model.TotalUsersCount</p>
+                <i class="ri-group-line text-gray-300 text-xl"></i>
+            </div>
+        </div>
+        <div class="bg-red-50 rounded-xl p-4 shadow-sm border border-red-100 flex flex-col justify-between h-24">
+            <p class="text-[10px] font-bold text-red-400 uppercase tracking-wider">Anlık Kilitli</p>
+            <div class="flex justify-between items-end">
+                <p id="lockedCount" class="text-2xl font-bold text-red-600">@Model.LockedUsersCount</p>
+                <i class="ri-lock-fill text-red-300 text-xl"></i>
+            </div>
+        </div>
+        <div class="bg-gray-50 rounded-xl p-4 shadow-sm border border-gray-200 flex flex-col justify-between h-24">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Pasif Hesaplar</p>
+            <div class="flex justify-between items-end">
+                <p id="disabledCount" class="text-2xl font-bold text-gray-600">@Model.DisabledUsersCount</p>
+                <i class="ri-user-unfollow-line text-gray-300 text-xl"></i>
+            </div>
+        </div>
+        <div class="bg-indigo-50 rounded-xl p-4 shadow-sm border border-indigo-100 flex flex-col justify-between h-24">
+            <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Admin Reset</p>
+            <div class="flex justify-between items-end">
+                <p id="dbResetCount" class="text-2xl font-bold text-indigo-600">@Model.Stats_TotalResets</p>
+                <i class="ri-admin-line text-indigo-300 text-xl"></i>
+            </div>
+        </div>
+        <div class="bg-emerald-50 rounded-xl p-4 shadow-sm border border-emerald-100 flex flex-col justify-between h-24">
+            <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Kilit Açma</p>
+            <div class="flex justify-between items-end">
+                <p id="dbUnlockCount" class="text-2xl font-bold text-emerald-600">@Model.Stats_TotalUnlocks</p>
+                <i class="ri-lock-unlock-line text-emerald-300 text-xl"></i>
+            </div>
+        </div>
+        <div class="bg-blue-50 rounded-xl p-4 shadow-sm border border-blue-100 flex flex-col justify-between h-24">
+            <p class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Self Servis</p>
+            <div class="flex justify-between items-end">
+                <p id="dbChangeCount" class="text-2xl font-bold text-blue-600">@Model.Stats_TotalChanges</p>
+                <i class="ri-user-settings-line text-blue-300 text-xl"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="lockedUsersPanel" class="@(Model.LockedUsers.Count > 0 ? "" : "hidden") bg-white rounded-2xl shadow-soft border border-red-100 overflow-hidden transition-all duration-500">
+        <div class="bg-red-50 px-6 py-4 border-b border-red-100 flex justify-between items-center">
+            <h3 class="font-bold text-red-800 flex items-center gap-2">
+                <i class="ri-alarm-warning-fill animate-pulse"></i> Acil Müdahale: Kilitli Hesaplar
+            </h3>
+            <span id="lockedListBadge" class="text-xs bg-white text-red-600 px-2 py-1 rounded font-bold border border-red-100">@Model.LockedUsers.Count Kişi</span>
+        </div>
+        <table class="w-full text-left">
+            <tbody id="lockedUsersTableBody" class="divide-y divide-red-50">
+                @foreach (var user in Model.LockedUsers)
+                {
+                    <tr class="hover:bg-red-50/50 transition-colors">
+                        <td class="px-6 py-4 font-medium text-gray-800">@user.DisplayName</td>
+                        <td class="px-6 py-4 text-gray-500 text-sm">@user.Username</td>
+                        <td class="px-6 py-4 text-right">
+                            <form action="/Admin/UnlockUser" method="post" class="inline">
+                                <input type="hidden" name="username" value="@user.Username" />
+                                <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1 ml-auto">
+                                    <i class="ri-lock-unlock-line"></i> HIZLI AÇ
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-soft border border-gray-100 p-8">
+        <h3 class="text-lg font-bold text-gray-800 mb-4">Kullanıcı Veritabanı Araması</h3>
+
+        @if (TempData["Message"] != null)
+        {
+            <div class="mb-6 p-4 rounded-xl bg-green-50 text-green-700 border border-green-100 flex items-center gap-3">
+                <i class="ri-checkbox-circle-fill text-xl"></i> <span class="font-medium">@TempData["Message"]</span>
+            </div>
+        }
+
+        <form action="/Admin/UserSearch" method="get" class="mb-8">
+            <div class="flex gap-3">
+                <div class="relative flex-grow">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="ri-search-2-line text-gray-400"></i>
+                    </div>
+                    <input type="text" name="search" value="@Model.SearchTerm"
+                           class="form-input w-full pl-11 pr-4 py-4 bg-gray-50 border-2 border-gray-100 rounded-xl text-gray-800 focus:bg-white focus:border-indigo-500 outline-none transition-all"
+                           placeholder="İsim, Soyisim veya Kullanıcı Adı..." autocomplete="off">
+                </div>
+                <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all">
+                    Ara
+                </button>
+            </div>
+        </form>
+
+        @if (Model.SearchResults != null && Model.SearchResults.Count > 0)
+        {
+            <div class="overflow-hidden rounded-xl border border-gray-200">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold">
+                            <th class="p-4 border-b border-gray-200">Durum</th>
+                            <th class="p-4 border-b border-gray-200">Hesap</th>
+                            <th class="p-4 border-b border-gray-200">İsim</th>
+                            <th class="p-4 border-b border-gray-200 text-right">İşlemler</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100 bg-white">
+                        @foreach (var user in Model.SearchResults)
+                        {
+                            <tr class="hover:bg-gray-50 transition-colors">
+                                <td class="p-4">
+                                    @if (user.IsLocked)
+                                    {
+                                        <span class="text-red-600 font-bold text-xs bg-red-50 px-2 py-1 rounded">KİLİTLİ</span>
+                                    }
+                                    else if (!user.IsEnabled)
+                                    {
+
+                                        <span class="text-gray-500 font-bold text-xs bg-gray-100 px-2 py-1 rounded">PASİF</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span class="text-green-600 font-bold text-xs bg-green-50 px-2 py-1 rounded">AKTİF</span>
+                                    }
+                                </td>
+                                <td class="p-4 font-medium">@user.Username</td>
+                                <td class="p-4 text-gray-600">@user.DisplayName</td>
+                                <td class="p-4 text-right">
+                                    <a href="/Admin/ResetUserPassword?username=@user.Username" class="text-indigo-600 bg-indigo-50 hover:bg-indigo-600 hover:text-white font-medium text-xs px-3 py-2 rounded-lg transition-colors inline-flex items-center gap-1">
+                                        <i class="ri-settings-3-line"></i> Yönet
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function fetchLiveStats() {
+        fetch('/Admin/GetLiveStats')
+            .then(response => { if(response.status === 401) window.location.href = '/Admin/Login'; return response.json(); })
+            .then(data => {
+                if(!data) return;
+                updateText("totalCount", data.totalUsersCount);
+                updateText("lockedCount", data.lockedUsersCount);
+                updateText("disabledCount", data.disabledUsersCount);
+                updateText("dbResetCount", data.stats_TotalResets);
+                updateText("dbUnlockCount", data.stats_TotalUnlocks);
+                updateText("dbChangeCount", data.stats_TotalChanges);
+
+                var lockedPanel = document.getElementById("lockedUsersPanel");
+                var tbody = document.getElementById("lockedUsersTableBody");
+                var badge = document.getElementById("lockedListBadge");
+
+                if (data.lockedUsers && data.lockedUsers.length > 0) {
+                    lockedPanel.classList.remove("hidden");
+                    badge.innerText = data.lockedUsers.length + " Kişi";
+                    let htmlRows = "";
+                    data.lockedUsers.forEach(user => {
+                        htmlRows += `
+                            <tr class="hover:bg-red-50/50 transition-colors">
+                                <td class="px-6 py-4 font-medium text-gray-800">${user.displayName || user.username}</td>
+                                <td class="px-6 py-4 text-gray-500 text-sm">${user.username}</td>
+                                <td class="px-6 py-4 text-right">
+                                    <form action="/Admin/UnlockUser" method="post" class="inline">
+                                        <input type="hidden" name="username" value="${user.username}" />
+                                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1 ml-auto">
+                                            <i class="ri-lock-unlock-line"></i> HIZLI AÇ
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>`;
+                    });
+                    tbody.innerHTML = htmlRows;
+                } else {
+                    lockedPanel.classList.add("hidden");
+                }
+            }).catch(err => {});
+    }
+    function updateText(id, value) { var el = document.getElementById(id); if(el) el.innerText = value; }
+    setInterval(fetchLiveStats, 5000);
+</script>

@@ -1,0 +1,65 @@
+﻿@model List<AdSelfServicePortal.Models.AuditLogModel>
+
+@{
+    ViewData["Title"] = "Aktivite Geçmişi";
+}
+
+<div class="w-full max-w-6xl mx-auto mt-6">
+    <div class="bg-white/90 backdrop-blur-md rounded-2xl shadow-soft border border-gray-100 p-8">
+
+        <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
+            <div>
+                <h3 class="text-xl font-bold text-gray-800">Sistem Aktivite Geçmişi</h3>
+                <p class="text-gray-500 text-sm mt-1">Sistemde yapılan son 100 kritik işlem.</p>
+            </div>
+            <div class="h-12 w-12 bg-indigo-50 rounded-xl flex items-center justify-center text-indigo-600">
+                <i class="ri-file-list-3-line text-2xl"></i>
+            </div>
+        </div>
+
+        <div class="overflow-hidden rounded-xl border border-gray-200">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider font-semibold">
+                        <th class="p-4 border-b border-gray-200">Tarih / Saat</th>
+                        <th class="p-4 border-b border-gray-200">İşlem Türü</th>
+                        <th class="p-4 border-b border-gray-200">Etkilenen Kullanıcı</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-100 bg-white">
+                    @foreach (var log in Model)
+                    {
+                        <tr class="hover:bg-indigo-50/30 transition-colors">
+                            <td class="p-4 text-gray-500 text-sm font-mono">@log.ActionDate.ToString("dd.MM.yyyy HH:mm")</td>
+                            <td class="p-4">
+                                @if (log.ActionType == "Reset")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-100 text-indigo-800">
+                                        <i class="ri-admin-line mr-1"></i> ADMİN RESET
+                                    </span>
+                                }
+                                else if (log.ActionType == "Unlock")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800">
+                                        <i class="ri-lock-unlock-line mr-1"></i> KİLİT AÇMA
+                                    </span>
+                                }
+                                else if (log.ActionType == "Change")
+                                {
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                                        <i class="ri-user-settings-line mr-1"></i> SELF SERVİS
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="text-gray-600">@log.ActionType</span>
+                                }
+                            </td>
+                            <td class="p-4 font-medium text-gray-900">@log.Username</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
