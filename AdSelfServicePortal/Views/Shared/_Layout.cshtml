@@ -1,4 +1,5 @@
 ﻿@using Microsoft.AspNetCore.Http
+@using AdSelfServicePortal.Constants
 @inject IHttpContextAccessor HttpContextAccessor
 
 <!DOCTYPE html>
@@ -46,8 +47,8 @@
 
                 <div class="flex items-center gap-4">
                     @{
-                        var normalUser = HttpContextAccessor.HttpContext?.Session.GetString("User");
-                        var adminUser = HttpContextAccessor.HttpContext?.Session.GetString("AdminUser");
+                        var normalUser = HttpContextAccessor.HttpContext?.Session.GetString(SessionKeys.User);
+                        var adminUser = HttpContextAccessor.HttpContext?.Session.GetString(SessionKeys.AdminUser);
                     }
 
                     @if (adminUser != null)

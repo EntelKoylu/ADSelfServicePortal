@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
+using AdSelfServicePortal.Constants;
 using AdSelfServicePortal.Models;
 using Serilog;
 
@@ -15,29 +16,25 @@ namespace AdSelfServicePortal.Services
             _auditService = auditService;
         }
 
-        // 1. LOGLARI GETİR (Admin İçin) - YENİ
         public List<AuditLogModel> GetAuditLogs()
         {
             return _auditService.GetRecentLogs();
         }
 
-        // 2. DASHBOARD İSTATİSTİKLERİ
         public DashboardViewModel GetDashboardStats()
         {
-            var model = new DashboardViewModel(); // Constructor sayesinde listeler boş olarak gelir
+            var model = new DashboardViewModel();
 
-            // AD Verileri
             try
             {
                 using (var context = new PrincipalContext(ContextType.Domain))
                 {
-                    UserPrincipal qbeUser = new UserPrincipal(context);
-                    PrincipalSearcher searcher = new PrincipalSearcher(qbeUser);
+                    var qbeUser = new UserPrincipal(context);
+                    var searcher = new PrincipalSearcher(qbeUser);
 
                     foreach (var result in searcher.FindAll())
                     {
-                        var user = result as UserPrincipal;
-                        if (user != null)
+                        if (result is UserPrincipal user)
                         {
                             model.TotalUsersCount++;
                             if (user.Enabled == false) model.DisabledUsersCount++;
@@ -62,30 +59,30 @@ namespace AdSelfServicePortal.Services
                 Log.Error(ex, "Dashboard istatistikleri alınırken hata oluştu");
             }
 
-            // DB Verileri
             var dbStats = _auditService.GetStats();
-            model.Stats_TotalResets = dbStats.TotalPasswordResets;
-            model.Stats_TotalUnlocks = dbStats.TotalAccountUnlocks;
-            model.Stats_TotalChanges = dbStats.TotalPasswordChanges;
+            model.TotalResets = dbStats.TotalPasswordResets;
+            model.TotalUnlocks = dbStats.TotalAccountUnlocks;
+            model.TotalChanges = dbStats.TotalPasswordChanges;
 
             return model;
         }
 
-        // 3. GİRİŞ KONTROLÜ
         public string ValidateUserAndGetStatus(string username, string password)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)) return "Boş Alan";
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+                return StatusCodes.EmptyField;
+
             try
             {
                 using (var context = new PrincipalContext(ContextType.Domain))
                 {
                     var user = UserPrincipal.FindByIdentity(context, username);
-                    if (user == null) return "Kullanıcı Bulunamadı";
-                    if (user.Enabled == false) return "Hesap Devre Dışı";
-                    if (user.IsAccountLockedOut()) return "Hesap Kilitli";
+                    if (user == null) return StatusCodes.UserNotFound;
+                    if (user.Enabled == false) return StatusCodes.AccountDisabled;
+                    if (user.IsAccountLockedOut()) return StatusCodes.AccountLocked;
 
-                    bool sifreDogru = context.ValidateCredentials(username, password);
-                    return sifreDogru ? "Basarili" : "Şifre Yanlış";
+                    bool isValid = context.ValidateCredentials(username, password);
+                    return isValid ? StatusCodes.Success : StatusCodes.WrongPassword;
                 }
             }
             catch (Exception ex)
@@ -95,18 +92,18 @@ namespace AdSelfServicePortal.Services
             }
         }
 
-        // 4. DİĞER İŞLEMLER
         public string CheckUserAvailability(string username)
         {
-            if (string.IsNullOrEmpty(username)) return "Boş Alan";
+            if (string.IsNullOrEmpty(username)) return StatusCodes.EmptyField;
+
             try
             {
                 using (var context = new PrincipalContext(ContextType.Domain))
                 {
                     var user = UserPrincipal.FindByIdentity(context, username);
-                    if (user == null) return "Kullanıcı Bulunamadı";
-                    if (user.Enabled == false) return "Hesap Devre Dışı";
-                    return "OK";
+                    if (user == null) return StatusCodes.UserNotFound;
+                    if (user.Enabled == false) return StatusCodes.AccountDisabled;
+                    return StatusCodes.Available;
                 }
             }
             catch (Exception ex)
@@ -123,11 +120,11 @@ namespace AdSelfServicePortal.Services
                 using (var context = new PrincipalContext(ContextType.Domain))
                 {
                     var user = UserPrincipal.FindByIdentity(context, username);
-                    if (user == null) return "Kullanıcı bulunamadı!";
+                    if (user == null) return StatusCodes.UserNotFound;
                     user.ChangePassword(oldPassword, newPassword);
                     user.Save();
                     _auditService.LogChange(username);
-                    return "Basarili";
+                    return StatusCodes.Success;
                 }
             }
             catch (Exception ex)
@@ -144,7 +141,7 @@ namespace AdSelfServicePortal.Services
                 using (var context = new PrincipalContext(ContextType.Domain))
                 {
                     var user = UserPrincipal.FindByIdentity(context, username);
-                    if (user == null) return "Kullanıcı bulunamadı!";
+                    if (user == null) return StatusCodes.UserNotFound;
                     user.SetPassword(newPassword);
                     if (mustChangeAtNextLogon) user.ExpirePasswordNow();
                     if (unlockAccount && user.IsAccountLockedOut())
@@ -154,7 +151,7 @@ namespace AdSelfServicePortal.Services
                     }
                     user.Save();
                     _auditService.LogReset(username);
-                    return "Basarili";
+                    return StatusCodes.Success;
                 }
             }
             catch (Exception ex)
@@ -171,15 +168,15 @@ namespace AdSelfServicePortal.Services
                 using (var context = new PrincipalContext(ContextType.Domain))
                 {
                     var user = UserPrincipal.FindByIdentity(context, username);
-                    if (user == null) return "Kullanıcı bulunamadı!";
+                    if (user == null) return StatusCodes.UserNotFound;
                     if (user.IsAccountLockedOut())
                     {
                         user.UnlockAccount();
                         user.Save();
                         _auditService.LogUnlock(username);
-                        return "Basarili";
+                        return StatusCodes.Success;
                     }
-                    return "Hesabınız kilitli görünmüyor.";
+                    return StatusCodes.AccountNotLocked;
                 }
             }
             catch (Exception ex)
@@ -192,19 +189,18 @@ namespace AdSelfServicePortal.Services
         public List<AdUserModel> SearchUsers(string searchText)
         {
             var userList = new List<AdUserModel>();
+            if (string.IsNullOrEmpty(searchText)) return userList;
+
             try
             {
                 using (var context = new PrincipalContext(ContextType.Domain))
                 {
-                    UserPrincipal qbeUser = new UserPrincipal(context);
-                    if (!string.IsNullOrEmpty(searchText)) qbeUser.SamAccountName = "*" + searchText + "*";
-                    else return userList;
+                    var qbeUser = new UserPrincipal(context) { SamAccountName = "*" + searchText + "*" };
+                    var searcher = new PrincipalSearcher(qbeUser);
 
-                    PrincipalSearcher searcher = new PrincipalSearcher(qbeUser);
                     foreach (var result in searcher.FindAll())
                     {
-                        var user = result as UserPrincipal;
-                        if (user != null)
+                        if (result is UserPrincipal user)
                         {
                             userList.Add(new AdUserModel
                             {

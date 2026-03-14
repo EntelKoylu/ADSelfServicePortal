@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using AdSelfServicePortal.Constants;
 using AdSelfServicePortal.Models;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
@@ -23,7 +24,7 @@ namespace AdSelfServicePortal.Services
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = "INSERT INTO AuditLogs (ActionType, Username, ActionDate) VALUES (@type, @user, @date)";
+                    const string sql = "INSERT INTO AuditLogs (ActionType, Username, ActionDate) VALUES (@type, @user, @date)";
                     using (var cmd = new NpgsqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("type", actionType);
@@ -33,7 +34,10 @@ namespace AdSelfServicePortal.Services
                     }
                 }
             }
-            catch (Exception ex) { Log.Error(ex, "Denetim kaydı yazılırken hata: {ActionType}, {Username}", actionType, username); }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Denetim kaydı yazılırken hata: {ActionType}, {Username}", actionType, username);
+            }
         }
 
         private int GetCount(string actionType)
@@ -43,7 +47,7 @@ namespace AdSelfServicePortal.Services
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = "SELECT COUNT(*) FROM AuditLogs WHERE ActionType = @type";
+                    const string sql = "SELECT COUNT(*) FROM AuditLogs WHERE ActionType = @type";
                     using (var cmd = new NpgsqlCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("type", actionType);
@@ -58,7 +62,6 @@ namespace AdSelfServicePortal.Services
             }
         }
 
-        // --- YENİ: SON İŞLEMLERİ GETİR (TABLO İÇİN) ---
         public List<AuditLogModel> GetRecentLogs()
         {
             var logs = new List<AuditLogModel>();
@@ -67,7 +70,7 @@ namespace AdSelfServicePortal.Services
                 using (var conn = new NpgsqlConnection(_connectionString))
                 {
                     conn.Open();
-                    string sql = "SELECT * FROM AuditLogs ORDER BY ActionDate DESC LIMIT 100";
+                    const string sql = "SELECT Id, ActionType, Username, ActionDate FROM AuditLogs ORDER BY ActionDate DESC LIMIT 100";
 
                     using (var cmd = new NpgsqlCommand(sql, conn))
                     using (var reader = cmd.ExecuteReader())
@@ -92,17 +95,17 @@ namespace AdSelfServicePortal.Services
             return logs;
         }
 
-        public void LogReset(string username) => LogToDb("Reset", username);
-        public void LogUnlock(string username) => LogToDb("Unlock", username);
-        public void LogChange(string username) => LogToDb("Change", username);
+        public void LogReset(string username) => LogToDb(AuditActionTypes.Reset, username);
+        public void LogUnlock(string username) => LogToDb(AuditActionTypes.Unlock, username);
+        public void LogChange(string username) => LogToDb(AuditActionTypes.Change, username);
 
         public AuditStats GetStats()
         {
             return new AuditStats
             {
-                TotalPasswordResets = GetCount("Reset"),
-                TotalAccountUnlocks = GetCount("Unlock"),
-                TotalPasswordChanges = GetCount("Change")
+                TotalPasswordResets = GetCount(AuditActionTypes.Reset),
+                TotalAccountUnlocks = GetCount(AuditActionTypes.Unlock),
+                TotalPasswordChanges = GetCount(AuditActionTypes.Change)
             };
         }
     }

@@ -1,14 +1,14 @@
-﻿using System;
+using System;
 
 namespace AdSelfServicePortal.Models
 {
     public class AdUserModel
     {
-        public string Username { get; set; }      // Kullanıcı Adı
-        public string DisplayName { get; set; }   // Ad Soyad
-        public string Email { get; set; }         // Mail
-        public bool IsLocked { get; set; }        // Kilitli mi?
-        public bool IsEnabled { get; set; }       // Aktif mi?
-        public DateTime? LastPasswordSet { get; set; } // Şifre Değişim Tarihi
+        public string Username { get; set; }
+        public string DisplayName { get; set; }
+        public string Email { get; set; }
+        public bool IsLocked { get; set; }
+        public bool IsEnabled { get; set; }
+        public DateTime? LastPasswordSet { get; set; }
     }
 }

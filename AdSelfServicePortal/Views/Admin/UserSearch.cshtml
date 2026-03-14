@@ -31,21 +31,21 @@
         <div class="bg-indigo-50 rounded-xl p-4 shadow-sm border border-indigo-100 flex flex-col justify-between h-24">
             <p class="text-[10px] font-bold text-indigo-400 uppercase tracking-wider">Admin Reset</p>
             <div class="flex justify-between items-end">
-                <p id="dbResetCount" class="text-2xl font-bold text-indigo-600">@Model.Stats_TotalResets</p>
+                <p id="dbResetCount" class="text-2xl font-bold text-indigo-600">@Model.TotalResets</p>
                 <i class="ri-admin-line text-indigo-300 text-xl"></i>
             </div>
         </div>
         <div class="bg-emerald-50 rounded-xl p-4 shadow-sm border border-emerald-100 flex flex-col justify-between h-24">
             <p class="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Kilit Açma</p>
             <div class="flex justify-between items-end">
-                <p id="dbUnlockCount" class="text-2xl font-bold text-emerald-600">@Model.Stats_TotalUnlocks</p>
+                <p id="dbUnlockCount" class="text-2xl font-bold text-emerald-600">@Model.TotalUnlocks</p>
                 <i class="ri-lock-unlock-line text-emerald-300 text-xl"></i>
             </div>
         </div>
         <div class="bg-blue-50 rounded-xl p-4 shadow-sm border border-blue-100 flex flex-col justify-between h-24">
             <p class="text-[10px] font-bold text-blue-400 uppercase tracking-wider">Self Servis</p>
             <div class="flex justify-between items-end">
-                <p id="dbChangeCount" class="text-2xl font-bold text-blue-600">@Model.Stats_TotalChanges</p>
+                <p id="dbChangeCount" class="text-2xl font-bold text-blue-600">@Model.TotalChanges</p>
                 <i class="ri-user-settings-line text-blue-300 text-xl"></i>
             </div>
         </div>
@@ -163,9 +163,9 @@
                 updateText("totalCount", data.totalUsersCount);
                 updateText("lockedCount", data.lockedUsersCount);
                 updateText("disabledCount", data.disabledUsersCount);
-                updateText("dbResetCount", data.stats_TotalResets);
-                updateText("dbUnlockCount", data.stats_TotalUnlocks);
-                updateText("dbChangeCount", data.stats_TotalChanges);
+                updateText("dbResetCount", data.totalResets);
+                updateText("dbUnlockCount", data.totalUnlocks);
+                updateText("dbChangeCount", data.totalChanges);
 
                 var lockedPanel = document.getElementById("lockedUsersPanel");
                 var tbody = document.getElementById("lockedUsersTableBody");
