@@ -25,22 +25,22 @@
             @Html.AntiForgeryToken()
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2 ml-1">Yönetici Kullanıcı Adı</label>
+                <label for="admin-username" class="block text-sm font-semibold text-gray-700 mb-2 ml-1">Yönetici Kullanıcı Adı</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="ri-admin-line text-gray-400"></i>
                     </div>
-                    <input type="text" name="username" class="form-input w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-button text-gray-800 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none" placeholder="admin.user" required>
+                    <input type="text" id="admin-username" name="username" class="form-input w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-button text-gray-800 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none" placeholder="admin.user" required>
                 </div>
             </div>
 
             <div>
-                <label class="block text-sm font-semibold text-gray-700 mb-2 ml-1">Şifre</label>
+                <label for="admin-password" class="block text-sm font-semibold text-gray-700 mb-2 ml-1">Şifre</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <i class="ri-lock-password-line text-gray-400"></i>
                     </div>
-                    <input type="password" name="password" class="form-input w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-button text-gray-800 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none" placeholder="••••••••" required>
+                    <input type="password" id="admin-password" name="password" class="form-input w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-button text-gray-800 focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 outline-none" placeholder="••••••••" required>
                 </div>
             </div>
 
