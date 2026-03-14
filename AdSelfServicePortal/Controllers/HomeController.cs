@@ -1,4 +1,6 @@
-﻿using AdSelfServicePortal.Services;
+﻿using System;
+using System.Text.RegularExpressions;
+using AdSelfServicePortal.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AdSelfServicePortal.Controllers
@@ -7,9 +9,17 @@ namespace AdSelfServicePortal.Controllers
     {
         private readonly AdService _adService;
 
+        // Kullanıcı adı doğrulama: sadece alfanümerik, nokta, tire ve alt çizgi
+        private static readonly Regex UsernameRegex = new Regex(@"^[a-zA-Z0-9._\-]{1,64}$", RegexOptions.Compiled);
+
         public HomeController(AdService adService)
         {
             _adService = adService;
+        }
+
+        private bool IsValidUsername(string username)
+        {
+            return !string.IsNullOrWhiteSpace(username) && UsernameRegex.IsMatch(username);
         }
 
         // --- DÜZELTİLEN KISIM BURASI ---
@@ -35,11 +45,19 @@ namespace AdSelfServicePortal.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
+            if (!IsValidUsername(username))
+            {
+                ViewBag.Message = "Geçersiz kullanıcı adı formatı.";
+                ViewBag.Renk = "warning";
+                return View("Index");
+            }
+
             string durum = _adService.ValidateUserAndGetStatus(username, password);
 
             if (durum == "Basarili")
             {
-                // Burada normal kullanıcı oturumu açılıyor
+                // Oturum sabitleme saldırısını önle
+                HttpContext.Session.Clear();
                 HttpContext.Session.SetString("User", username);
                 return RedirectToAction("ChangePassword");
             }
@@ -49,7 +67,7 @@ namespace AdSelfServicePortal.Controllers
             else if (durum == "Hesap Devre Dışı") ViewBag.Message = "ParamTech IT Ekibi ile görüşülmesi gerekmektedir.";
             else if (durum == "Hesap Kilitli") ViewBag.Message = "Hesabınız kilitlenmiş! Aşağıdaki buton ile kilidi açabilirsiniz.";
             else if (durum == "Şifre Yanlış") ViewBag.Message = "Şifre hatalı.";
-            else ViewBag.Message = "Hata: " + durum;
+            else ViewBag.Message = "İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.";
 
             ViewBag.Renk = (durum == "Boş Alan" || durum == "Hesabınız kilitli görünmüyor.") ? "warning" : "danger";
             return View("Index");
@@ -83,29 +101,67 @@ namespace AdSelfServicePortal.Controllers
         [HttpPost]
         public IActionResult ForgotPassword(string username)
         {
+            if (!IsValidUsername(username))
+            {
+                ViewBag.Message = "Geçersiz kullanıcı adı formatı.";
+                ViewBag.Renk = "danger";
+                return View();
+            }
+
             string kontrol = _adService.CheckUserAvailability(username);
-            if (kontrol == "OK") return RedirectToAction("SetNewPassword", new { username = username });
+            if (kontrol == "OK")
+            {
+                // Oturum tokeni ile SetNewPassword'a güvenli geçiş
+                var token = Guid.NewGuid().ToString();
+                HttpContext.Session.SetString("ResetToken", token);
+                HttpContext.Session.SetString("ResetUsername", username);
+                return RedirectToAction("SetNewPassword", new { token = token });
+            }
 
             if (kontrol == "Kullanıcı Bulunamadı") ViewBag.Message = "Böyle bir kullanıcı hesabı bulunamadı.";
             else if (kontrol == "Hesap Devre Dışı") ViewBag.Message = "Bu hesap devre dışı bırakılmıştır.";
-            else ViewBag.Message = "Hata: " + kontrol;
+            else ViewBag.Message = "İşlem sırasında bir hata oluştu. Lütfen tekrar deneyin.";
 
             ViewBag.Renk = "danger";
             return View();
         }
 
-        public IActionResult SetNewPassword(string username)
+        public IActionResult SetNewPassword(string token)
         {
-            ViewBag.Username = username;
+            // Token doğrulaması - doğrudan URL erişimini engelle
+            var sessionToken = HttpContext.Session.GetString("ResetToken");
+            var sessionUsername = HttpContext.Session.GetString("ResetUsername");
+
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(sessionToken) ||
+                string.IsNullOrEmpty(sessionUsername) || token != sessionToken)
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            ViewBag.Username = sessionUsername;
+            ViewBag.Token = token;
             return View();
         }
 
         [HttpPost]
-        public IActionResult SetNewPassword(string username, string newPassword)
+        public IActionResult SetNewPassword(string token, string newPassword)
         {
-            string sonuc = _adService.ForceResetPassword(username, newPassword);
+            // Token doğrulaması
+            var sessionToken = HttpContext.Session.GetString("ResetToken");
+            var sessionUsername = HttpContext.Session.GetString("ResetUsername");
+
+            if (string.IsNullOrEmpty(token) || string.IsNullOrEmpty(sessionToken) ||
+                string.IsNullOrEmpty(sessionUsername) || token != sessionToken)
+            {
+                return RedirectToAction("ForgotPassword");
+            }
+
+            string sonuc = _adService.ForceResetPassword(sessionUsername, newPassword);
             if (sonuc == "Basarili")
             {
+                // Token'ı temizle - tek kullanımlık
+                HttpContext.Session.Remove("ResetToken");
+                HttpContext.Session.Remove("ResetUsername");
                 ViewBag.Message = "Şifreniz başarıyla sıfırlandı! Giriş yapabilirsiniz.";
                 ViewBag.Renk = "success";
             }
@@ -113,7 +169,8 @@ namespace AdSelfServicePortal.Controllers
             {
                 ViewBag.Message = sonuc; ViewBag.Renk = "danger";
             }
-            ViewBag.Username = username;
+            ViewBag.Username = sessionUsername;
+            ViewBag.Token = token;
             return View();
         }
 
@@ -122,6 +179,13 @@ namespace AdSelfServicePortal.Controllers
         [HttpPost]
         public IActionResult UnlockAccount(string username)
         {
+            if (!IsValidUsername(username))
+            {
+                ViewBag.Message = "Geçersiz kullanıcı adı formatı.";
+                ViewBag.Renk = "warning";
+                return View();
+            }
+
             string sonuc = _adService.UnlockUserAccount(username);
             SetViewMessage(sonuc, "Hesap kilidiniz kaldırıldı!");
             return View();

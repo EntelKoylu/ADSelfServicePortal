@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using AdSelfServicePortal.Models;
 using Microsoft.Extensions.Configuration;
 using Npgsql;
+using Serilog;
 
 namespace AdSelfServicePortal.Services
 {
@@ -32,7 +33,7 @@ namespace AdSelfServicePortal.Services
                     }
                 }
             }
-            catch (Exception ex) { Console.WriteLine("Loglama Hatası: " + ex.Message); }
+            catch (Exception ex) { Log.Error(ex, "Denetim kaydı yazılırken hata: {ActionType}, {Username}", actionType, username); }
         }
 
         private int GetCount(string actionType)
@@ -50,7 +51,11 @@ namespace AdSelfServicePortal.Services
                     }
                 }
             }
-            catch { return 0; }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "İstatistik sayısı alınırken hata: {ActionType}", actionType);
+                return 0;
+            }
         }
 
         // --- YENİ: SON İŞLEMLERİ GETİR (TABLO İÇİN) ---
@@ -80,7 +85,10 @@ namespace AdSelfServicePortal.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Denetim logları alınırken hata");
+            }
             return logs;
         }
 

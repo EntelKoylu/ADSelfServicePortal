@@ -1,5 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using AdSelfServicePortal.Models;
 using AdSelfServicePortal.Services;
 using Microsoft.AspNetCore.Http;
@@ -13,9 +15,17 @@ namespace AdSelfServicePortal.Controllers
         private const string AdminSessionKey = "AdminUser";
         private const string AdminGroupName = "Domain Admins";
 
+        // Kullanıcı adı doğrulama: sadece alfanümerik, nokta, tire ve alt çizgi
+        private static readonly Regex UsernameRegex = new Regex(@"^[a-zA-Z0-9._\-]{1,64}$", RegexOptions.Compiled);
+
         public AdminController(AdService adService)
         {
             _adService = adService;
+        }
+
+        private bool IsValidUsername(string username)
+        {
+            return !string.IsNullOrWhiteSpace(username) && UsernameRegex.IsMatch(username);
         }
 
         public IActionResult Login()
@@ -27,11 +37,19 @@ namespace AdSelfServicePortal.Controllers
         [HttpPost]
         public IActionResult Login(string username, string password)
         {
+            if (!IsValidUsername(username))
+            {
+                ViewBag.Error = "Geçersiz kullanıcı adı formatı.";
+                return View();
+            }
+
             string durum = _adService.ValidateUserAndGetStatus(username, password);
             if (durum == "Basarili")
             {
                 if (_adService.IsUserInGroup(username, AdminGroupName))
                 {
+                    // Oturum sabitleme saldırısını önlemek için yeni oturum oluştur
+                    HttpContext.Session.Clear();
                     HttpContext.Session.SetString(AdminSessionKey, username);
                     return RedirectToAction("Index");
                 }
@@ -41,7 +59,7 @@ namespace AdSelfServicePortal.Controllers
                     return View();
                 }
             }
-            ViewBag.Error = "Giriş Başarısız: " + durum;
+            ViewBag.Error = "Giriş başarısız. Lütfen bilgilerinizi kontrol edin.";
             return View();
         }
 
@@ -118,15 +136,21 @@ namespace AdSelfServicePortal.Controllers
         }
 
         [HttpPost]
-        public IActionResult UnlockUser(string username, string returnSearch)
+        public IActionResult UnlockUser(string username, string returnSearch, string returnTo)
         {
             if (HttpContext.Session.GetString(AdminSessionKey) == null) return RedirectToAction("Login");
+
+            if (!IsValidUsername(username))
+            {
+                TempData["Error"] = "Geçersiz kullanıcı adı.";
+                return RedirectToAction("Index");
+            }
+
             string sonuc = _adService.UnlockUserAccount(username);
             TempData[sonuc == "Basarili" ? "Message" : "Error"] = sonuc == "Basarili" ? "Kilit açıldı!" : sonuc;
 
-            // Nereden geldiyse oraya dön (Index veya UserSearch)
-            string referer = Request.Headers["Referer"].ToString();
-            if (referer.Contains("UserSearch")) return RedirectToAction("UserSearch", new { search = returnSearch });
+            // Güvenli yönlendirme - sadece bilinen action'lara izin ver (Open Redirect koruması)
+            if (returnTo == "UserSearch") return RedirectToAction("UserSearch", new { search = returnSearch });
 
             return RedirectToAction("Index", new { search = returnSearch });
         }
@@ -134,6 +158,8 @@ namespace AdSelfServicePortal.Controllers
         public IActionResult ResetUserPassword(string username)
         {
             if (HttpContext.Session.GetString(AdminSessionKey) == null) return RedirectToAction("Login");
+            if (!IsValidUsername(username)) return RedirectToAction("Index");
+
             var users = _adService.SearchUsers(username);
             var currentUser = users.FirstOrDefault(u => u.Username == username);
             if (currentUser == null) return RedirectToAction("Index");
@@ -144,11 +170,16 @@ namespace AdSelfServicePortal.Controllers
         public IActionResult ResetUserPassword(string username, string newPassword, bool mustChange, bool unlock)
         {
             if (HttpContext.Session.GetString(AdminSessionKey) == null) return RedirectToAction("Login");
+            if (!IsValidUsername(username))
+            {
+                TempData["Error"] = "Geçersiz kullanıcı adı.";
+                return RedirectToAction("Index");
+            }
+
             string sonuc = _adService.ForceResetPassword(username, newPassword, mustChange, unlock);
             if (sonuc == "Basarili")
             {
                 TempData["Message"] = "Şifre güncellendi.";
-                // İşlem bitince UserSearch sayfasına dönelim
                 return RedirectToAction("UserSearch", new { search = username });
             }
             TempData["Error"] = sonuc;
