@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.DirectoryServices.AccountManagement;
 using AdSelfServicePortal.Models;
+using Serilog;
 
 namespace AdSelfServicePortal.Services
 {
@@ -56,7 +57,10 @@ namespace AdSelfServicePortal.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Dashboard istatistikleri alınırken hata oluştu");
+            }
 
             // DB Verileri
             var dbStats = _auditService.GetStats();
@@ -84,7 +88,11 @@ namespace AdSelfServicePortal.Services
                     return sifreDogru ? "Basarili" : "Şifre Yanlış";
                 }
             }
-            catch (Exception ex) { return "Sistem Hatası: " + ex.Message; }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Kullanıcı doğrulama sırasında hata: {Username}", username);
+                return "Sistem hatası oluştu. Lütfen tekrar deneyin.";
+            }
         }
 
         // 4. DİĞER İŞLEMLER
@@ -101,7 +109,11 @@ namespace AdSelfServicePortal.Services
                     return "OK";
                 }
             }
-            catch (Exception ex) { return "Hata: " + ex.Message; }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Kullanıcı durumu kontrol edilirken hata: {Username}", username);
+                return "Sistem hatası oluştu. Lütfen tekrar deneyin.";
+            }
         }
 
         public string ChangeUserPassword(string username, string oldPassword, string newPassword)
@@ -118,7 +130,11 @@ namespace AdSelfServicePortal.Services
                     return "Basarili";
                 }
             }
-            catch (Exception ex) { return "Hata: " + ex.Message; }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Şifre değiştirme sırasında hata: {Username}", username);
+                return "Şifre değiştirilemedi. Şifre politikasına uygun olduğundan emin olun.";
+            }
         }
 
         public string ForceResetPassword(string username, string newPassword, bool mustChangeAtNextLogon = false, bool unlockAccount = false)
@@ -141,7 +157,11 @@ namespace AdSelfServicePortal.Services
                     return "Basarili";
                 }
             }
-            catch (Exception ex) { return "Hata: " + ex.Message; }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Şifre sıfırlama sırasında hata: {Username}", username);
+                return "Şifre sıfırlanamadı. Şifre politikasına uygun olduğundan emin olun.";
+            }
         }
 
         public string UnlockUserAccount(string username)
@@ -162,7 +182,11 @@ namespace AdSelfServicePortal.Services
                     return "Hesabınız kilitli görünmüyor.";
                 }
             }
-            catch (Exception ex) { return "Hata: " + ex.Message; }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Hesap kilidi açılırken hata: {Username}", username);
+                return "Hesap kilidi açılamadı. Lütfen tekrar deneyin.";
+            }
         }
 
         public List<AdUserModel> SearchUsers(string searchText)
@@ -195,7 +219,10 @@ namespace AdSelfServicePortal.Services
                     }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Kullanıcı arama sırasında hata: {SearchText}", searchText);
+            }
             return userList;
         }
 
@@ -210,7 +237,11 @@ namespace AdSelfServicePortal.Services
                     if (user != null && group != null) return user.IsMemberOf(group);
                 }
             }
-            catch { return false; }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "Grup üyeliği kontrol edilirken hata: {Username}, {GroupName}", username, groupName);
+                return false;
+            }
             return false;
         }
     }

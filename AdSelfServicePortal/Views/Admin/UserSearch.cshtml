@@ -67,6 +67,7 @@
                         <td class="px-6 py-4 text-gray-500 text-sm">@user.Username</td>
                         <td class="px-6 py-4 text-right">
                             <form action="/Admin/UnlockUser" method="post" class="inline">
+                                @Html.AntiForgeryToken()
                                 <input type="hidden" name="username" value="@user.Username" />
                                 <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1 ml-auto">
                                     <i class="ri-lock-unlock-line"></i> HIZLI AÇ
@@ -173,23 +174,47 @@
                 if (data.lockedUsers && data.lockedUsers.length > 0) {
                     lockedPanel.classList.remove("hidden");
                     badge.innerText = data.lockedUsers.length + " Kişi";
-                    let htmlRows = "";
+
+                    tbody.innerHTML = '';
                     data.lockedUsers.forEach(user => {
-                        htmlRows += `
-                            <tr class="hover:bg-red-50/50 transition-colors">
-                                <td class="px-6 py-4 font-medium text-gray-800">${user.displayName || user.username}</td>
-                                <td class="px-6 py-4 text-gray-500 text-sm">${user.username}</td>
-                                <td class="px-6 py-4 text-right">
-                                    <form action="/Admin/UnlockUser" method="post" class="inline">
-                                        <input type="hidden" name="username" value="${user.username}" />
-                                        <button type="submit" class="bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1 ml-auto">
-                                            <i class="ri-lock-unlock-line"></i> HIZLI AÇ
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>`;
+                        var tr = document.createElement('tr');
+                        tr.className = 'hover:bg-red-50/50 transition-colors';
+
+                        var td1 = document.createElement('td');
+                        td1.className = 'px-6 py-4 font-medium text-gray-800';
+                        td1.textContent = user.displayName || user.username;
+
+                        var td2 = document.createElement('td');
+                        td2.className = 'px-6 py-4 text-gray-500 text-sm';
+                        td2.textContent = user.username;
+
+                        var td3 = document.createElement('td');
+                        td3.className = 'px-6 py-4 text-right';
+
+                        var form = document.createElement('form');
+                        form.action = '/Admin/UnlockUser';
+                        form.method = 'post';
+                        form.className = 'inline';
+
+                        var hiddenInput = document.createElement('input');
+                        hiddenInput.type = 'hidden';
+                        hiddenInput.name = 'username';
+                        hiddenInput.value = user.username;
+
+                        var btn = document.createElement('button');
+                        btn.type = 'submit';
+                        btn.className = 'bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-4 py-2 rounded-lg shadow-sm transition-colors flex items-center gap-1 ml-auto';
+                        btn.innerHTML = '<i class="ri-lock-unlock-line"></i> HIZLI A\u00C7';
+
+                        form.appendChild(hiddenInput);
+                        form.appendChild(btn);
+                        td3.appendChild(form);
+
+                        tr.appendChild(td1);
+                        tr.appendChild(td2);
+                        tr.appendChild(td3);
+                        tbody.appendChild(tr);
                     });
-                    tbody.innerHTML = htmlRows;
                 } else {
                     lockedPanel.classList.add("hidden");
                 }
